@@ -250,6 +250,17 @@ final class GrokProviderTests: XCTestCase {
 
         let ok = HTTPResponse(statusCode: 200, headers: [:], body: Data(#"{"error":"No personal team."}"#.utf8))
         XCTAssertFalse(GrokUsageMapper.isTeamBillingUnavailable(ok))
+
+        // Phrase only in `code`, not `error` — not the team-principal signal.
+        let codeOnly = HTTPResponse(
+            statusCode: 412,
+            headers: [:],
+            body: Data(#"{"code":"No personal team.","error":"precondition failed"}"#.utf8)
+        )
+        XCTAssertFalse(GrokUsageMapper.isTeamBillingUnavailable(codeOnly))
+
+        let notJSON = HTTPResponse(statusCode: 412, headers: [:], body: Data("No personal team.".utf8))
+        XCTAssertFalse(GrokUsageMapper.isTeamBillingUnavailable(notJSON))
     }
 
     func testNonWeeklyPeriodShowsNoWeeklyLineAndNoWarning() async {
